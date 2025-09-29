@@ -2,7 +2,6 @@
 import { prisma } from "@/utils/actions/database/prisma";
 import { auth } from "@/utils/actions/auth/auth";
 import { NextResponse } from "next/server";
-import { sendEmail } from "@/utils/actions/notifications/notifications";
 
 export async function GET() {
   const session = await auth();
@@ -68,8 +67,8 @@ export async function PUT(req: Request) {
     // ...
 
     return NextResponse.json(updatedUser);
-  } catch (err: any) {
-    console.error("❌ Failed to update profile:", err.message);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("❌ Error updating profile:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

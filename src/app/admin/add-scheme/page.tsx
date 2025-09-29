@@ -75,12 +75,8 @@ export default function AddSchemePage() {
       } else {
         setMessage(`❌ Error: ${data.message}`);
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setMessage(`❌ Error: ${err.message}`);
-      } else {
-        setMessage("❌ Error: Unknown error");
-      }
+    } catch (error) {
+      setMessage("❌ An unexpected error occurred.");
     } finally {
       setLoading(false);
     }

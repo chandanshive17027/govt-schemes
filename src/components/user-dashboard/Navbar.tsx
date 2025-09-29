@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SignOut } from "../auth/SignOut";
-import { auth } from "@/utils/actions/auth/auth";
 
 export default function Navbar({username}: {username?: string | null}) {
   const [darkMode, setDarkMode] = useState(false);

@@ -6,7 +6,6 @@ import Hero from "@/components/home/Hero";
 import Navbar from "@/components/home/Navbar";
 import Newsletter from "@/components/home/Newsletter";
 import SchemeSpotlight from "@/components/home/SchemeCarousel";
-import Image from "next/image";
 
 export default function Home() {
   return (

@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Footer from "@/components/home/Footer";
-import Navbar from "@/components/user-dashboard/Navbar";
 
 interface Bookmark {
   id: string;

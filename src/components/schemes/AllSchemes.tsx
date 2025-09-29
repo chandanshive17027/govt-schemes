@@ -57,8 +57,8 @@ export default function SchemesPage() {
           isBookmarked ? prev.filter((id) => id !== schemeId) : [...prev, schemeId]
         );
       }
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Error toggling bookmark:", error);
     }
   };
 

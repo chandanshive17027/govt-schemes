@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
 import { useRouter } from "next/navigation";
 import Footer from "../home/Footer";
 import Navbar from "./Navbar";
@@ -63,11 +62,9 @@ export default function ProfilePage() {
           education: data.education || "",
           preferredLanguage: data.preferredLanguage || "",
         });
-      } catch (err) {
-        console.error(err);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
         toast.error("Error fetching profile. Please try again.");
-      } finally {
-        setLoading(false);
       }
     };
     fetchProfile();
@@ -111,8 +108,8 @@ export default function ProfilePage() {
       toast.success("Eligible schemes have been sent to your Email!");
 
       router.push("/dashboard");
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error("Error updating profile:", error);
       toast.error("Error updating profile. Please try again.");
     }
   };

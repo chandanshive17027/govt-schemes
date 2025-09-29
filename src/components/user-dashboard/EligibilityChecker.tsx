@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useSession } from "next-auth/react";
 
 interface Scheme {
   id: string;
@@ -55,10 +54,8 @@ export default function EligibilityChecker({ userId }: { userId: string }) {
 
       const schemeData: Scheme[] = await resSchemes.json();
       setSchemes(schemeData);
-    } catch (err: any) {
-      setError(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      console.error("Error checking eligibility:", error);
     }
   };
 

@@ -58,8 +58,8 @@ export async function POST(req: NextRequest, { params }: { params: { schemeId: s
 
     const parsedResult = JSON.parse(result);
     return NextResponse.json(parsedResult);
-  } catch (err) {
-    console.error("Eligibility check error:", err);
-    return NextResponse.json({ eligible: false, reasons: ["Failed to check eligibility"] });
+  } catch (error) {
+    console.error("❌ Error in eligibility check:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

@@ -1,15 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function Hero() {
-  const [query, setQuery] = useState("");
+  const [query] = useState("");
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // TODO: Connect this to AI search API
-    console.log("Searching for scheme:", query);
-  };
+  // const handleSearch = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   // TODO: Connect this to AI search API
+  //   console.log("Searching for scheme:", query);
+  // };
 
   return (
     <section className="relative flex flex-col items-center justify-center h-[70vh] bg-white dark:bg-gray-900">
@@ -47,18 +48,18 @@ export default function Hero() {
 
         {/* CTA Buttons */}
         <div className="flex justify-center gap-4 mt-6">
-          <a
+          <Link
             href="/schemes"
             className="px-6 py-3 text-white bg-blue-900 rounded-xl font-medium hover:bg-blue-800 transition"
           >
             Explore Schemes
-          </a>
-          <a
+          </Link>
+          <Link
             href="/sign-in"
             className="px-6 py-3 text-blue-900 bg-white rounded-xl font-medium border border-blue-900 hover:bg-gray-100 transition"
           >
             Login
-          </a>
+          </Link>
         </div>
       </div>
     </section>

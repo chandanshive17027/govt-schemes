@@ -3,7 +3,7 @@ import { prisma } from "@/utils/actions/database/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET( { params }: { params: { id: string } }) {
   const {id} = await params;
   try {
     const scheme = await prisma.scheme.findUnique({
@@ -13,13 +13,13 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     if (!scheme) return NextResponse.json({ message: "Scheme not found" }, { status: 404 });
 
     return NextResponse.json(scheme);
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Failed to fetch scheme" }, { status: 500 });
+  } catch (error) {
+    console.error("❌ Error fetching scheme:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST({ params }: { params: { id: string } }) {
   try {
     // 1️⃣ Check if user is logged in
     const session = await auth();
@@ -82,8 +82,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     return NextResponse.json(pythonResult);
-  } catch (err) {
-    console.error("❌ Error checking eligibility:", err);
+  } catch (error) {
+    console.error("❌ Error in eligibility check:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

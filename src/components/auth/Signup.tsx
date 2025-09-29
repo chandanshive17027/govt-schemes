@@ -45,10 +45,8 @@ export default function RegisterPage() {
         setSuccess(data.message);
         setForm({ name: "", email: "", password: "" });
       }
-    } catch (err) {
-      setError("Network error");
-    } finally {
-      setLoading(false);
+    } catch (error) {
+      setError("Something went wrong. Please try again.");
     }
   };
 

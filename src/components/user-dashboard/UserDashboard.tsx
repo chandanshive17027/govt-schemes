@@ -5,7 +5,6 @@ import Footer from '../home/Footer'
 import WelcomeSection from './WelcomeSection'
 import BookmarksPage from '@/app/dashboard/bookmarks/page'
 import EligibilityChecker from './EligibilityChecker'
-import { auth } from '@/utils/actions/auth/auth'
 import { SignOut } from '../auth/SignOut'
 
 

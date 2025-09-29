@@ -1,5 +1,4 @@
 //src/app/dashboard/page.tsx
-import { SignOut } from '@/components/auth/SignOut'
 import UserDashboard from '@/components/user-dashboard/UserDashboard'
 import { auth } from '@/utils/actions/auth/auth'
 import React from 'react'

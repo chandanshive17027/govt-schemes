@@ -66,8 +66,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     return NextResponse.json(pythonResult);
-  } catch (err: unknown) {
-    console.error("❌ Error checking eligibility:", err);
+  } catch (error) {
+    console.error("❌ Error in eligibility check:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

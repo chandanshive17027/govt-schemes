@@ -35,7 +35,7 @@ function runPython(user: object, scheme: object): Promise<boolean> {
       try {
         const result = JSON.parse(output.trim());
         resolve(result.eligible ?? false);
-      } catch (err) {
+      } catch (error) {
         console.error("⚠️ Failed to parse eligibility result:", output);
         resolve(false);
       }

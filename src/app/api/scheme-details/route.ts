@@ -94,8 +94,8 @@ console.log("DB check incomplete count:", incomplete);
 
             updatedCount++;
             resolve(true);
-          } catch (err) {
-            console.error("⚠️ Failed to parse scraper output for:", s.link);
+          } catch (error) {
+            console.error("❌ Failed to parse scraper output for:", s.link, error);
             resolve(null);
           }
         }
