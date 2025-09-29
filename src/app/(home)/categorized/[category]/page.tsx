@@ -72,11 +72,8 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
         </div>
       </div>
     );
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      return <p className="text-red-600">Error: {err.message}</p>;
-    }
-    return <p className="text-red-600">Error: Unknown error</p>;
+  } catch (error) {
+    return <p className="text-red-600">⚠️ {(error as Error).message}</p>;
   }
 };
 
