@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 
 interface SchemeForm {
   name: string;
@@ -21,7 +20,6 @@ interface SchemeForm {
 }
 
 export default function AddSchemePage() {
-  const router = useRouter();
   const [form, setForm] = useState<SchemeForm>({
     name: "",
     state: "",
@@ -77,8 +75,12 @@ export default function AddSchemePage() {
       } else {
         setMessage(`❌ Error: ${data.message}`);
       }
-    } catch (err: any) {
-      setMessage(`❌ Error: ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setMessage(`❌ Error: ${err.message}`);
+      } else {
+        setMessage("❌ Error: Unknown error");
+      }
     } finally {
       setLoading(false);
     }

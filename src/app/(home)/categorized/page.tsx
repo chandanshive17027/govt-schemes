@@ -42,8 +42,12 @@ export default function CategorizedSchemesComponent() {
         if (!res.ok) throw new Error("Failed to fetch schemes");
         const json = await res.json();
         setData(json.categorized);
-      } catch (err: any) {
-        setError(err.message || "Something went wrong");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message || "Something went wrong");
+        } else {
+          setError("Unknown error");
+        }
       } finally {
         setLoading(false);
       }

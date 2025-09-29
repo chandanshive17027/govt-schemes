@@ -1,7 +1,6 @@
 import Navbar from '@/components/admin-dashboard/Navbar'
 import SchemesData from '@/components/admin-dashboard/SchemesData'
 import UserCardDashboard from '@/components/admin-dashboard/UsersCard'
-import { SignOut } from '@/components/auth/SignOut'
 import Footer from '@/components/home/Footer'
 import React from 'react'
 
