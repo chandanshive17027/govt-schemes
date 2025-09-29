@@ -1,0 +1,153 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(auto()) @map("_id") @db.ObjectId
+  name              String?
+  email             String?   @unique
+  emailVerified     DateTime?
+  image             String?
+  hashedPassword    String?
+  role              String    @default("user") // 'admin' or 'user'    
+  age               Int?
+  castecategory     String?
+  occupation        String?
+  income            Int?
+  state             String?
+  city              String?
+  maritalStatus     String?
+  zipCode           Int?
+  education         String?
+  preferredLanguage String?
+  gender            String?
+  phoneNumber       Int?
+
+  accounts      Account[]
+  sessions      Session[]
+  Authenticator Authenticator[]
+  notifications Notification[]
+  userSchemes   UserScheme[]
+  eligibleSchemes String[] @default([]) // Array of Scheme IDs the user is eligible for
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Scheme {
+  id            String         @id @default(auto()) @map("_id") @db.ObjectId
+  name          String
+  state        String?
+  ministry      String?
+  tags          String[]
+  details       String?
+  eligibility   String?
+  benefits      String?
+  application_process   String?
+  documents_required String?
+  faqs          String[]
+  sources_and_resources String[]
+  link          String         @unique
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  detailsFetched     Boolean  @default(false)
+  userSchemes   UserScheme[]
+  notifications Notification[]
+  eligible      Json[]   @default([]) // Parsed eligibility criteria as JSON
+}
+
+model UserScheme {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @db.ObjectId
+  scheme    Scheme   @relation(fields: [schemeId], references: [id])
+  schemeId  String   @db.ObjectId
+  notified  Boolean  @default(false) // whether WhatsApp/email notification sent
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, schemeId])
+}
+
+model Notification {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String    @db.ObjectId
+  scheme    Scheme?   @relation(fields: [schemeId], references: [id])
+  schemeId  String?   @db.ObjectId
+  type      String // "WhatsApp" or "Email"
+  status    String    @default("pending") // pending, sent, failed
+  message   String
+  sentAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Optional for WebAuthn support
+model Authenticator {
+  credentialID         String  @id @map("_id")
+  userId               String  @db.ObjectId
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, credentialID])
+}
