@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Govt-Schemes",
+  title: "MySchemes",
   description: "A web app to explore various government schemes.",
 };
 
