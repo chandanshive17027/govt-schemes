@@ -3,7 +3,7 @@ import { prisma } from "@/utils/actions/database/prisma";
 import { auth } from "@/utils/actions/auth/auth";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(_req: NextRequest) {
+export async function GET(_: NextRequest) {
   const session = await auth();
 
   if (!session?.user?.email) {
