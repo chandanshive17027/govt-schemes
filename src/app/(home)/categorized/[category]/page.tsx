@@ -1,6 +1,13 @@
+// src/app/category/[category]/page.tsx
 import React from "react";
 import Link from "next/link";
-import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
@@ -29,7 +36,9 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
 
   // Invalid category check
   if (!categoryNames[category]) {
-    return <p className="text-center text-red-600 mt-10">⚠️ Category not found</p>;
+    return (
+      <p className="text-center text-red-600 mt-10">⚠️ Category not found</p>
+    );
   }
 
   try {
@@ -62,11 +71,13 @@ const CategoryPage = async ({ params }: CategoryPageProps) => {
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
+
         {/* Title */}
         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">
           {categoryNames[category]} Schemes
         </h1>
 
+        {/* Schemes List */}
         {schemes.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-1">
             {schemes.map((scheme) => (
