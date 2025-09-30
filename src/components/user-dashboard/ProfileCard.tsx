@@ -39,22 +39,22 @@ export default function ProfileCard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/user/profile");
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        console.error(err);
-        toast.error("Error fetching profile. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/user/profile");
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      const data = await res.json();
+      setUser(data);
+    } catch (err) {
+      console.error(err);
+      toast.error("Error fetching profile. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchProfile();
-  }, [toast]);
+  fetchProfile();
+}, []);
 
   if (loading) {
     return (

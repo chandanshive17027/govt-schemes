@@ -107,7 +107,7 @@ export default function ProfilePage() {
   throw new Error(`Failed to update profile: ${errorText}`);
 }
 
-      const data = await res.json();
+      await res.json();
 
       toast.success("Profile updated successfully!");
       toast.success("Eligible schemes have been sent to your Email!");

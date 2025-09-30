@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Bookmark } from "lucide-react";
+import { toast } from "sonner";
 
 interface Scheme {
   id: string;
@@ -21,7 +22,7 @@ const EligibilityChecker = ({ userId }: { userId: string }) => {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [prevSchemeIds, setPrevSchemeIds] = useState<string[]>([]); // track previous schemes
 
-  const fetchEligibleSchemes = async () => {
+  const fetchEligibleSchemes = useCallback(async () => {
     setLoading(true);
     try {
       const res = await fetch("/api/check-eligiblity", {
@@ -34,39 +35,40 @@ const EligibilityChecker = ({ userId }: { userId: string }) => {
 
       if (res.ok) {
         const newSchemes: Scheme[] = data.eligibleSchemes || [];
-
-        // Check if there are new schemes
         const newSchemeIds = newSchemes.map((s) => s.id);
-        const hasNewScheme = newSchemeIds.some((id) => !prevSchemeIds.includes(id));
+        const hasNewScheme = newSchemeIds.some(
+          (id) => !prevSchemeIds.includes(id)
+        );
 
         setSchemes(newSchemes);
         setPrevSchemeIds(newSchemeIds);
 
-        if (hasNewScheme && newSchemes.length > 0) {
-          setEmailSent(true);
-        } else {
-          setEmailSent(false); // No new schemes, don't resend email
-        }
+        setEmailSent(hasNewScheme && newSchemes.length > 0);
       } else {
         console.error(data.error || "Failed to fetch eligible schemes");
       }
-    } catch (err) {
-      console.error("Error fetching schemes:", err);
+    } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, prevSchemeIds]); // 👈 include deps
 
   const handleBookmark = (schemeId: string) => {
     if (!bookmarks.includes(schemeId)) {
       setBookmarks([...bookmarks, schemeId]);
-      alert("Scheme bookmarked!");
+      toast.success("Scheme bookmarked!");
     }
   };
 
   useEffect(() => {
     fetchEligibleSchemes();
-  }, [userId]);
+  }, [fetchEligibleSchemes]);
 
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -88,7 +90,9 @@ const EligibilityChecker = ({ userId }: { userId: string }) => {
               className="border hover:shadow-lg transition rounded-2xl"
             >
               <CardHeader className="flex justify-between items-center">
-                <CardTitle className="text-lg font-semibold">{scheme.name}</CardTitle>
+                <CardTitle className="text-lg font-semibold">
+                  {scheme.name}
+                </CardTitle>
                 <Button
                   variant="ghost"
                   size="icon"

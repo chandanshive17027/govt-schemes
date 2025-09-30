@@ -4,7 +4,14 @@ import { sendEmail } from "./notifications";
 
 const prisma = new PrismaClient();
 
-export async function notifyUsersAboutNewScheme(scheme: any) {
+interface Scheme {
+  id: string;
+  name: string;
+  state?: string;
+  ministry?: string;
+}
+
+export async function notifyUsersAboutNewScheme(scheme: Scheme) {
   // Fetch users from database
   const users = await prisma.user.findMany();
 

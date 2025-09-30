@@ -42,8 +42,13 @@ export default function SchemesPage() {
         const data = await res.json();
         setBookmarks(data.map((b: any) => b.schemeId));
       }
-    } catch (error) {
-      console.error("Error fetching bookmarks:", error);
+    } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
     }
   };
 
@@ -63,8 +68,13 @@ export default function SchemesPage() {
           isBookmarked ? prev.filter((id) => id !== schemeId) : [...prev, schemeId]
         );
       }
-    } catch (error) {
-      console.error("Error toggling bookmark:", error);
+    } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
     }
   };
 

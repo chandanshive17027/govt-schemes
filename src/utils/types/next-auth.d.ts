@@ -1,5 +1,5 @@
-import NextAuth from "next-auth";
-
+// src/utils/types/next-auth.d.ts
+import "next-auth";
 declare module "next-auth" {
   interface Session {
     user: {
@@ -8,7 +8,7 @@ declare module "next-auth" {
       name?: string | null;
       role?: string;
       image?: string | null;
-      plan: string;
+      plan?: string;
     };
   }
 
