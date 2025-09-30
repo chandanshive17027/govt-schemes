@@ -12,12 +12,12 @@ const categories: Record<string, string[]> = {
   employment: ["employment", "job", "skill", "training"],
 };
 
-// ✅ Correct GET handler signature
 export async function GET(
   req: NextRequest,
-  context: {params: {category: string}}
-) : Promise<NextResponse> {
-  const { category } = await context.params;
+  context: { params: { category: string } }
+): Promise<NextResponse> {
+  // Await the params property to correctly destructure it.
+  const { category } = context.params;
 
   if (!categories[category]) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });
