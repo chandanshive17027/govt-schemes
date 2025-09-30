@@ -11,8 +11,9 @@ const categories: Record<string, string[]> = {
   employment: ["employment", "job", "skill", "training"],
 };
 
-export async function GET(req: NextRequest, { params }: { params: { category: string } }) {
-  const category = await params.category;
+// Correct GET handler signature
+export async function GET(req: NextRequest, context: { params: { category: string } }) {
+  const { category } = context.params; // <-- access params here
 
   if (!categories[category]) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });
