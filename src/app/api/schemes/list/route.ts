@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     const skip = page ? (parseInt(page as string, 10) - 1) * take : 0;
 
     // Build filter object dynamically
-    const filters: any = {};
+     const filters: Record<string, unknown> = {};
 
     if (search) {
       filters.OR = [

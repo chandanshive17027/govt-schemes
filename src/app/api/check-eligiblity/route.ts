@@ -13,7 +13,6 @@ interface User {
   email?: string;
   state?: string;
   ministry?: string;
-
 }
 
 interface Scheme {
@@ -22,13 +21,16 @@ interface Scheme {
   state?: string[] | string;
   ministry?: string;
   details?: string;
-  eligible: any[];
+  eligible: string[]; // replace `any[]` with `string[]` (or correct type from schema)
 }
 
 const prisma = new PrismaClient();
 
-// Helper to normalize state and check match
-function isStateMatch(userState: string | undefined, schemeStates: string[] | string | undefined, schemeMinistry?: string) {
+function isStateMatch(
+  userState: string | undefined,
+  schemeStates: string[] | string | undefined,
+  schemeMinistry?: string
+) {
   if (!userState) return false;
   const userStateNorm = userState.trim().toLowerCase();
 
@@ -38,7 +40,10 @@ function isStateMatch(userState: string | undefined, schemeStates: string[] | st
     ? [schemeStates]
     : [];
 
-  if (statesArr.length === 0 || statesArr.map(s => s.trim().toLowerCase()).includes("all")) {
+  if (
+    statesArr.length === 0 ||
+    statesArr.map((s) => s.trim().toLowerCase()).includes("all")
+  ) {
     return true;
   }
 
@@ -47,7 +52,11 @@ function isStateMatch(userState: string | undefined, schemeStates: string[] | st
     if (schemeMinistry && sNorm.startsWith(schemeMinistry.trim().toLowerCase())) {
       return true;
     }
-    if (sNorm === userStateNorm || userStateNorm.includes(sNorm) || sNorm.includes(userStateNorm)) {
+    if (
+      sNorm === userStateNorm ||
+      userStateNorm.includes(sNorm) ||
+      sNorm.includes(userStateNorm)
+    ) {
       return true;
     }
   }
@@ -55,8 +64,8 @@ function isStateMatch(userState: string | undefined, schemeStates: string[] | st
 }
 
 // Helper to run Python eligibility script
-async function runPython(user: User, schemes: Scheme[]) {
-  return new Promise<any[]>((resolve, reject) => {
+async function runPython(user: User, schemes: Scheme[]): Promise<Scheme[]> {
+  return new Promise<Scheme[]>((resolve, reject) => {
     try {
       const tempDir = path.join(process.cwd(), "tmp");
       if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
@@ -64,8 +73,7 @@ async function runPython(user: User, schemes: Scheme[]) {
       const userFile = path.join(tempDir, `user_${Date.now()}.json`);
       const schemesFile = path.join(tempDir, `schemes_${Date.now()}.json`);
 
-      // Pre-filter schemes based on state match like notifications
-      const filteredSchemes = schemes.filter(scheme =>
+      const filteredSchemes = schemes.filter((scheme) =>
         isStateMatch(user.state, scheme.state, scheme.ministry)
       );
 
@@ -95,13 +103,13 @@ async function runPython(user: User, schemes: Scheme[]) {
 
         if (code === 0) {
           try {
-            const parsed = JSON.parse(output);
+            const parsed: Scheme[] = JSON.parse(output);
             resolve(parsed);
-          } catch (e) {
-            reject("Invalid JSON from Python: " + output);
+          } catch {
+            reject(new Error("Invalid JSON from Python: " + output));
           }
         } else {
-          reject(error || "Python script failed");
+          reject(new Error(error || "Python script failed"));
         }
       });
     } catch (err) {
@@ -113,7 +121,7 @@ async function runPython(user: User, schemes: Scheme[]) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const userId = body.userId;
+    const userId: string | undefined = body.userId;
 
     if (!userId) {
       return NextResponse.json({ error: "userId is required" }, { status: 400 });
@@ -126,7 +134,6 @@ export async function POST(req: NextRequest) {
 
     const schemes = await prisma.scheme.findMany();
 
-    // Map Prisma user to User interface (convert nulls to undefined)
     const userForEligibility: User = {
       id: user.id,
       name: user.name ?? undefined,
@@ -134,26 +141,28 @@ export async function POST(req: NextRequest) {
       state: user.state ?? undefined,
     };
 
-    // Map schemes to match Scheme interface (convert nulls to undefined)
     const schemesForEligibility: Scheme[] = schemes.map((scheme) => ({
       ...scheme,
       state: scheme.state ?? undefined,
       ministry: scheme.ministry ?? undefined,
       details: scheme.details ?? undefined,
-      eligible: scheme.eligible ?? [],
+      eligible: (scheme.eligible as string[]) ?? [],
     }));
 
-    // Run Python with pre-filtered schemes based on state match
     const eligibleSchemes = await runPython(userForEligibility, schemesForEligibility);
 
-    // Only send email if new eligible schemes exist
     if (eligibleSchemes.length > 0 && user.email) {
       const html = `
         <h2>Hi ${user.name || "User"},</h2>
         <p>Based on your profile, you are eligible for the following schemes:</p>
         <ul>
           ${eligibleSchemes
-            .map((s: any) => `<li><b>${s.name}</b> - ${s.details || "No description available"}</li>`)
+            .map(
+              (s) =>
+                `<li><b>${s.name}</b> - ${
+                  s.details || "No description available"
+                }</li>`
+            )
             .join("")}
         </ul>
         <p>Regards,<br/>Gov Scheme Portal</p>
@@ -167,7 +176,8 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      message: "Eligibility check complete. Recommendations have also been sent to email.",
+      message:
+        "Eligibility check complete. Recommendations have also been sent to email.",
       eligibleSchemes,
     });
   } catch (err: unknown) {
