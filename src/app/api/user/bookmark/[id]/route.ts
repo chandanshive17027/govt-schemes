@@ -1,19 +1,23 @@
 import { auth } from "@/utils/actions/auth/auth";
 import { prisma } from "@/utils/actions/database/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 interface Params {
   params: { id: string };
 }
 
-export async function DELETE(req: Request, { params }: Params) {
+export async function DELETE(request: NextRequest,
+  context: { params: Promise<{ id: string }> } // Correctly type context.params as a Promise
+): Promise<NextResponse> {
   const session = await auth();
   if (!session?.user?.email) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    return new NextResponse(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
-    const { id: schemeId } = await params;
+  const params = await context.params;
+  const { id: schemeId } = params;
   if (!schemeId) {
-    return new Response(JSON.stringify({ error: "Scheme ID missing" }), { status: 400 });
+    return new NextResponse(JSON.stringify({ error: "Scheme ID missing" }), { status: 400 });
   }
 
   try {
