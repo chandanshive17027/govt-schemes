@@ -18,7 +18,7 @@ interface Scheme {
 }
 
 interface CategoryPageProps {
-  params: { category: string };
+  params: Promise<{ category: string }>;
 }
 
 // Map category keys to display names
@@ -32,7 +32,7 @@ const categoryNames: Record<string, string> = {
 };
 
 const CategoryPage = async ({ params }: CategoryPageProps) => {
-  const { category } = params;
+  const { category } = await params;
 
   // Invalid category check
   if (!categoryNames[category]) {
