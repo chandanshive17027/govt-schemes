@@ -4,8 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 import { toast } from "sonner";
 
-export async function GET( req: NextRequest, { params }: { params: { id: string } }) {
-  const {id} = await params;
+export async function GET(  request: NextRequest,
+  context: { params: Promise<{ id: string }> } // Correctly type context.params as a Promise
+): Promise<NextResponse> {
+  const params = await context.params;
+  const { id } = params;
   try {
     const scheme = await prisma.scheme.findUnique({
       where: { id },
