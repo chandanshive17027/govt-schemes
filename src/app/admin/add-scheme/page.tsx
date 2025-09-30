@@ -17,7 +17,7 @@ interface SchemeForm {
   sources_and_resources: string[];
   link: string;
   detailsFetched?: boolean;
-  eligible?: any[];
+  eligible?: string[];
 }
 
 export default function AddSchemePage() {
