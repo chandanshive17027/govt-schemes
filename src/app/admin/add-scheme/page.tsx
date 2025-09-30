@@ -76,11 +76,16 @@ export default function AddSchemePage() {
       } else {
         setMessage(`❌ Error: ${data.message}`);
       }
-    } catch (err: any) {
-        toast.error(err.message);
-      }  finally {
-      setLoading(false);
+    } catch (err: unknown) {
+    // Safely check if `err` is an instance of `Error`
+    if (err instanceof Error) {
+      toast.error(err.message);
+    } else {
+      toast.error("❌ An unexpected error occurred.");
     }
+  } finally {
+    setLoading(false);
+  }
   };
 
   return (
