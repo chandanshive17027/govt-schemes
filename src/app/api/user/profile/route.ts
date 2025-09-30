@@ -1,9 +1,9 @@
 // src/app/api/user/profile/route.ts
 import { prisma } from "@/utils/actions/database/prisma";
 import { auth } from "@/utils/actions/auth/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
 
   if (!session?.user?.email) {
@@ -17,7 +17,7 @@ export async function GET() {
   return NextResponse.json(user);
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   const session = await auth();
 
   // ✅ Accept both id and email for session validation

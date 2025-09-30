@@ -10,7 +10,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
     service: "gmail",
     auth: {
       user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_PASS, // Use App Password if 2FA is enabled
+      pass: process.env.GMAIL_PASS, 
     },
   });
 

@@ -1,115 +1,127 @@
-import sys
+# src/scripts/eligibility_checker.py
 import json
+from typing import List, Dict, Union
 
-def check_user_eligibility(user, scheme_eligibilities):
-    reasons = []
 
-    for elig in scheme_eligibilities:
-        eligible = True
-        scheme_reasons = []
+def is_state_match(user_state: str, scheme_states: Union[List[str], str, None]) -> bool:
+    """
+    Returns True only if:
+    - scheme states is empty or 'all'
+    - OR user_state exactly matches one of the scheme states
+    """
+    if not user_state:
+        return False
 
-        # Age
-        if elig.get("minAge") is not None and user.get("age") is not None:
-            if user["age"] < elig["minAge"]:
-                eligible = False
-                scheme_reasons.append(f"Minimum age required: {elig['minAge']}")
-        if elig.get("maxAge") is not None and user.get("age") is not None:
-            if user["age"] > elig["maxAge"]:
-                eligible = False
-                scheme_reasons.append(f"Maximum age allowed: {elig['maxAge']}")
+    user_state_norm = user_state.strip().lower()
 
-        # Gender
-        if elig.get("gender") and user.get("gender"):
-            allowed_genders = elig["gender"]
-            if isinstance(allowed_genders, str):
-                allowed_genders = [allowed_genders]
-            allowed_genders = [g.strip().lower() for g in allowed_genders]
+    # Convert scheme_states to list
+    states_list: List[str] = []
+    if isinstance(scheme_states, str):
+        # Allow comma-separated states in string
+        states_list = [s.strip() for s in scheme_states.split(",") if s.strip()]
+    elif isinstance(scheme_states, list):
+        states_list = [s.strip() for s in scheme_states if s.strip()]
 
-            if user["gender"].strip().lower() not in allowed_genders:
-                eligible = False
-                scheme_reasons.append(f"Applicable only for gender: {', '.join(allowed_genders)}")
+    # If empty or 'all', always match
+    if not states_list or any(s.lower() == "all" for s in states_list):
+        return True
 
-        # Occupation
-        if elig.get("occupation") and user.get("occupation"):
-            allowed_occupations = elig["occupation"]
-            if isinstance(allowed_occupations, str):
-                allowed_occupations = [allowed_occupations]
-            allowed_occupations = [o.strip().lower() for o in allowed_occupations]
+    # Exact match only
+    return any(user_state_norm == s.lower() for s in states_list)
 
-            if user["occupation"].strip().lower() not in allowed_occupations:
-                eligible = False
-                scheme_reasons.append(f"Applicable only for occupations: {', '.join(allowed_occupations)}")
 
-        # Education
-        if elig.get("education") and user.get("education"):
-            allowed_education = elig["education"]
-            if isinstance(allowed_education, str):
-                allowed_education = [allowed_education]
-            allowed_education = [e.strip().lower() for e in allowed_education]
+def check_eligibility(user: Dict, schemes: List[Dict]) -> List[Dict]:
+    """
+    Recommend top 5 schemes for a user based on criteria:
+    state, education, occupation, age, gender
+    """
+    recommendations = []
 
-            if user["education"].strip().lower() not in allowed_education:
-                eligible = False
-                scheme_reasons.append(f"Required education: {', '.join(allowed_education)}")
+    user_state = user.get("state", "").strip().lower()
+    user_edu = (user.get("education") or "").strip().lower()
+    user_occ = (user.get("occupation") or "").strip().lower()
+    user_age = user.get("age")
+    user_gender = (user.get("gender") or "").strip().lower()
 
-        # Caste
-        if elig.get("castecategory") and user.get("castecategory"):
-            allowed_castes = elig["castecategory"]
-            if isinstance(allowed_castes, str):
-                allowed_castes = [allowed_castes]
-            allowed_castes = [c.strip().lower() for c in allowed_castes]
+    for scheme in schemes:
+        eligibilities = scheme.get("eligible") or []
+        max_score = 0
 
-            if user["castecategory"].strip().lower() not in allowed_castes:
-                eligible = False
-                scheme_reasons.append(f"Applicable only for caste category: {', '.join(allowed_castes)}")
+        for elig in eligibilities:
+            if not isinstance(elig, dict):
+                continue
 
-        # Income
-        if elig.get("income") is not None and user.get("income") is not None:
-            if user["income"] > elig["income"]:
-                eligible = False
-                scheme_reasons.append(f"Income must be less than or equal to {elig['income']}")
+            score = 0
 
-        # Marital Status
-        if elig.get("maritalStatus") and user.get("maritalStatus"):
-            allowed_status = elig["maritalStatus"]
-            if isinstance(allowed_status, str):
-                allowed_status = [allowed_status]
-            allowed_status = [s.strip().lower() for s in allowed_status]
+            # 1️⃣ State match
+            if not is_state_match(user_state, elig.get("state")):
+                continue  # Skip this eligibility if state doesn't match
+            score += 1
 
-            if user["maritalStatus"].strip().lower() not in allowed_status:
-                eligible = False
-                scheme_reasons.append(f"Applicable only for marital status: {', '.join(allowed_status)}")
+            # 2️⃣ Education / Occupation match (any one)
+            elig_edu = elig.get("education") or []
+            if isinstance(elig_edu, str):
+                elig_edu = [elig_edu]
+            elig_edu = [e.strip().lower() for e in elig_edu]
 
-        # State
-        if elig.get("state") and user.get("state"):
-            allowed_states = elig["state"]
-            if isinstance(allowed_states, str):
-                allowed_states = [allowed_states]
-            allowed_states = [s.strip().lower() for s in allowed_states]
+            elig_occ = elig.get("occupation") or []
+            if isinstance(elig_occ, str):
+                elig_occ = [elig_occ]
+            elig_occ = [o.strip().lower() for o in elig_occ]
 
-            if user["state"].strip().lower() not in allowed_states:
-                eligible = False
-                scheme_reasons.append(f"Applicable only for states: {', '.join(allowed_states)}")
+            if user_edu in elig_edu or user_occ in elig_occ:
+                score += 1
+            else:
+                continue  # Skip if neither matches
 
-        if eligible:
-            return {"eligible": True, "reasons": []}
-        else:
-            reasons.extend(scheme_reasons)
+            # 3️⃣ Age match (if specified)
+            min_age = elig.get("minAge")
+            max_age = elig.get("maxAge")
+            if user_age is not None:
+                if (min_age is not None and user_age < min_age) or (
+                    max_age is not None and user_age > max_age
+                ):
+                    continue
+                score += 1
 
-    return {"eligible": False, "reasons": reasons}
+            # 4️⃣ Gender match (if specified)
+            elig_gender = elig.get("gender")
+            if elig_gender:
+                if isinstance(elig_gender, str):
+                    elig_gender = [elig_gender]
+                elig_gender = [g.strip().lower() for g in elig_gender]
+                if user_gender not in elig_gender:
+                    continue
+                score += 1
+
+            # Update max_score for this scheme
+            if score > max_score:
+                max_score = score
+
+        if max_score > 0:
+            recommendations.append({"scheme": scheme, "score": max_score})
+
+    # Sort by score descending and take top 5
+    recommendations.sort(key=lambda x: x["score"], reverse=True)
+    top_schemes = [r["scheme"] for r in recommendations[:5]]
+    return top_schemes
 
 
 if __name__ == "__main__":
-    # Expecting 2 arguments: user JSON and scheme JSON
-    if len(sys.argv) < 3:
-        print(json.dumps({"eligible": False, "reasons": ["Missing user or scheme data"]}))
+    import sys
+
+    if len(sys.argv) != 3:
+        print("Usage: python user_eligibility.py user.json schemes.json")
         sys.exit(1)
 
-    user_json = json.loads(sys.argv[1])
-    scheme_json = json.loads(sys.argv[2])
-    if isinstance(scheme_json, list):
-        scheme_json_list = scheme_json
-    else:
-        scheme_json_list = [scheme_json]
+    user_file = sys.argv[1]
+    schemes_file = sys.argv[2]
 
-    result = check_user_eligibility(user_json, scheme_json_list)
-    print(json.dumps(result))
+    with open(user_file) as f:
+        user_data = json.load(f)
+
+    with open(schemes_file) as f:
+        schemes_data = json.load(f)
+
+    top_schemes = check_eligibility(user_data, schemes_data)
+    print(json.dumps(top_schemes, indent=2))

@@ -3,7 +3,7 @@ import { prisma } from "@/utils/actions/database/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 
-export async function GET( { params }: { params: { id: string } }) {
+export async function GET( req: NextRequest, { params }: { params: { id: string } }) {
   const {id} = await params;
   try {
     const scheme = await prisma.scheme.findUnique({
@@ -85,6 +85,36 @@ export async function POST({ params }: { params: { id: string } }) {
   } catch (error) {
     console.error("❌ Error in eligibility check:", error);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  request: Request,          // first param is request
+  { params }: { params: { id: string } } // second param is context with params
+) {
+  const { id } = await params;
+
+  if (!id) {
+    return NextResponse.json({ message: "Invalid scheme id" }, { status: 400 });
+  }
+
+  try {
+    const deletedScheme = await prisma.scheme.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({
+      message: "Scheme deleted successfully",
+      scheme: deletedScheme,
+    });
+  } catch (err: any) {
+    console.error("❌ Error deleting scheme:", err);
+
+    if (err.code === "P2025") {
+      return NextResponse.json({ message: "Scheme not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }
 

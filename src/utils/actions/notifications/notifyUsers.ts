@@ -1,42 +1,40 @@
-// src/utils/actions/notifyUsers.ts
-
-import SendmailTransport from "nodemailer/lib/sendmail-transport";
-import { isUserEligibleForScheme } from "../eligibility/checkEligibility";
-import { prisma } from "../database/prisma";
+// src/utils/actions/notifications/notifyUsers.ts
+import { PrismaClient } from "@prisma/client";
 import { sendEmail } from "./notifications";
 
+const prisma = new PrismaClient();
 
-export async function notifyEligibleUsersForScheme(schemeId: string) {
-  // 1️⃣ Fetch scheme
-  const scheme = await prisma.scheme.findUnique({ where: { id: schemeId } });
-  if (!scheme) return;
-
-  // 2️⃣ Fetch all users
+export async function notifyUsersAboutNewScheme(scheme: any) {
+  // Fetch users from database
   const users = await prisma.user.findMany();
 
-  // 3️⃣ Loop through users
   for (const user of users) {
-    // Check eligibility
-    const eligible = await isUserEligibleForScheme(user, scheme);
-    if (!eligible) continue;
+    let shouldNotify = false;
 
-    // Prepare email content
-    const subject = `New Government Scheme: ${scheme.name}`;
-    const message = `
-      Hello ${user.name || ""},<br/><br/>
-      You are eligible for a new government scheme: <strong>${scheme.name}</strong>.<br/>
-      <a href="${scheme.link}" target="_blank">Click here to know more</a>.<br/><br/>
-      Regards,<br/>
-      Your Government Scheme Portal
-    `;
+    if (scheme.state?.toLowerCase().startsWith("ministry")) {
+      // Ministry schemes go to all users
+      shouldNotify = true;
+    } else if (
+      user.state &&
+      scheme.state &&
+      user.state.toLowerCase() === scheme.state.toLowerCase()
+    ) {
+      // State match
+      shouldNotify = true;
+    }
 
-    // Send email if user has email
-    if (user.email) {
+    if (shouldNotify && user.email) {
       try {
-        await sendEmail(user.email, subject, message);
-        console.log(`✅ Email sent to ${user.email} for scheme: ${scheme.name}`);
+        await sendEmail(
+          user.email,
+          `New Scheme Available: ${scheme.name}`,
+          `<p>Hi ${user.name},</p>
+           <p>A new scheme <strong>${scheme.name}</strong> is now available.</p>
+           <p>Check it here: <a href="${process.env.NEXT_PUBLIC_BASE_URL}/scheme/${scheme.id}">${scheme.name}</a></p>
+           <p>Regards, <br/>Gov Scheme Portal</p>`
+        );
       } catch (err) {
-        console.error(`❌ Failed to send email to ${user.email}:`, err);
+        console.error(`Failed to send email to ${user.email}:`, err);
       }
     }
   }

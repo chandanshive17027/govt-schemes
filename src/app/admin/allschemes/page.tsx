@@ -115,17 +115,19 @@ const AllSchemesPage = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this scheme?")) return;
+  if (!confirm("Are you sure you want to delete this scheme?")) return;
 
-    try {
-      await fetch(`/api/schemes/${id}`, {
-        method: "DELETE",
-      });
-      setSchemes((prev) => prev.filter((s) => s.id !== id));
-    } catch (err) {
-      console.error("Error deleting scheme:", err);
+  try {
+    const res = await fetch(`/api/schemes/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "Failed to delete");
     }
-  };
+    setSchemes((prev) => prev.filter((s) => s.id !== id));
+  } catch (err: any) {
+    console.error("Error deleting scheme:", err.message);
+  }
+};
 
   return (
     <div className="p-6">

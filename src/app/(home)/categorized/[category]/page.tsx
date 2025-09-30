@@ -1,5 +1,8 @@
 import React from "react";
 import Link from "next/link";
+import { Breadcrumb, BreadcrumbList, BreadcrumbItem, BreadcrumbLink, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface Scheme {
   id: string;
@@ -24,56 +27,95 @@ const categoryNames: Record<string, string> = {
 const CategoryPage = async ({ params }: CategoryPageProps) => {
   const { category } = params;
 
-  if (!categoryNames[category]) return <p>Category not found</p>;
+  // Invalid category check
+  if (!categoryNames[category]) {
+    return <p className="text-center text-red-600 mt-10">⚠️ Category not found</p>;
+  }
 
   try {
-    // Fetch only schemes for this category
-    const res = await fetch(`${process.env.NEXTAUTH_URL}/api/categorized/${category}`);
-    if (!res.ok) throw new Error("Failed to fetch schemes");
+    // Fetch schemes for this category
+    const res = await fetch(
+      `${process.env.NEXTAUTH_URL}/api/categorized/${category}`,
+      { cache: "no-store" }
+    );
 
-    const json = await res.json();
-    const schemes: Scheme[] = json.schemes || [];
+    if (!res.ok) {
+      throw new Error("Failed to fetch schemes");
+    }
+
+    const data = await res.json();
+    const schemes: Scheme[] = data.schemes || [];
 
     return (
-      <div className="max-w-4xl mx-auto py-16 px-4">
-        <h1 className="text-3xl font-bold mb-8 text-blue-900">
+      <div className="max-w-4xl mx-auto py-12 px-4 space-y-8">
+        {/* Breadcrumb */}
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink href="/">Categories</BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbLink href={`/category/${category}`}>
+                {categoryNames[category]}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+        {/* Title */}
+        <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">
           {categoryNames[category]} Schemes
         </h1>
 
         {schemes.length > 0 ? (
-          <ul className="space-y-4">
+          <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-1">
             {schemes.map((scheme) => (
-              <li
+              <Card
                 key={scheme.id}
-                className="p-4 bg-blue-50 rounded flex justify-between items-center"
+                className="hover:shadow-lg transition-shadow duration-200"
               >
-                <span>{scheme.name}</span>
-                {scheme.link && (
-                  <a
-                    href={`/schemes/${scheme.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    View
-                  </a>
-                )}
-              </li>
+                <CardHeader>
+                  <CardTitle className="line-clamp-2 text-lg font-semibold">
+                    {scheme.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="flex justify-end">
+                  {scheme.link ? (
+                    <Button asChild size="sm" className="rounded-xl">
+                      <Link href={`/schemes/${scheme.id}`} target="_blank">
+                        View
+                      </Link>
+                    </Button>
+                  ) : (
+                    <Button size="sm" disabled>
+                      Not Available
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
             ))}
-          </ul>
+          </div>
         ) : (
-          <p>No schemes found in this category.</p>
+          <div className="text-center py-16 border rounded-lg bg-gray-50">
+            <p className="text-lg font-medium text-gray-700">
+              No schemes found in this category.
+            </p>
+            <Link
+              href="/"
+              className="mt-4 inline-block text-blue-600 hover:underline"
+            >
+              ← Back to categories
+            </Link>
+          </div>
         )}
-
-        <div className="mt-8">
-          <Link href="/" className="text-blue-600 underline">
-            ← Back to categories
-          </Link>
-        </div>
       </div>
     );
   } catch (error) {
-    return <p className="text-red-600">⚠️ {(error as Error).message}</p>;
+    return (
+      <p className="text-red-600 font-medium text-center mt-10">
+        ⚠️ {(error as Error).message}
+      </p>
+    );
   }
 };
 

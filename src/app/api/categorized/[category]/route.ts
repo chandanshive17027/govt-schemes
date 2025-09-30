@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/utils/actions/database/prisma";
+import { NextRequest, NextResponse } from "next/server";
 
 // Map categories to keywords
 const categories: Record<string, string[]> = {
@@ -13,8 +11,8 @@ const categories: Record<string, string[]> = {
   employment: ["employment", "job", "skill", "training"],
 };
 
-export async function GET(req: Request, { params }: { params: { category: string } }) {
-  const category = params.category;
+export async function GET(req: NextRequest, { params }: { params: { category: string } }) {
+  const category = await params.category;
 
   if (!categories[category]) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });

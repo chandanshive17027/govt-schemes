@@ -12,7 +12,7 @@ export async function middleware(request: NextRequest) {
 
   // 1. Unauthenticated users should not access protected routes
   if (!session && !isPublic) {
-    return NextResponse.redirect(new URL("/sign-in", request.url));
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   // 2. Logged-in users should not access public routes

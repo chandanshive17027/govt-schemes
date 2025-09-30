@@ -30,7 +30,7 @@ export default function Navbar({username}: {username?: string | null}) {
         <div className="flex justify-between items-center h-16">
           {/* Website Name */}
           <div className="text-2xl font-bold text-blue-900 dark:text-blue-50">
-            <Link href="/dashboard">MySchemes</Link>
+            <Link href="/dashboard">Govt-Schemes</Link>
           </div>
 
           {/* Right Side: Theme toggle + Login */}

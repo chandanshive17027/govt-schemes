@@ -41,34 +41,39 @@ export default function ProfilePage() {
 
   // Fetch user details on mount
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/user/profile");
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        setFormData({
-          name: data.name || "",
-          email: data.email || "",
-          phoneNumber: data.phoneNumber || "",
-          age: data.age?.toString() || "",
-          gender: data.gender || "",
-          castecategory: data.castecategory || "",
-          occupation: data.occupation || "",
-          income: data.income?.toString() || "",
-          state: data.state || "",
-          city: data.city || "",
-          zipCode: data.zipCode || "",
-          maritalStatus: data.maritalStatus || "",
-          education: data.education || "",
-          preferredLanguage: data.preferredLanguage || "",
-        });
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Error fetching profile. Please try again.");
-      }
-    };
-    fetchProfile();
-  }, [toast]);
+  const fetchProfile = async () => {
+    try {
+      const res = await fetch("/api/user/profile");
+      if (!res.ok) throw new Error("Failed to fetch profile");
+      const data = await res.json();
+
+      setFormData({
+        name: data.name || "",
+        email: data.email || "",
+        phoneNumber: data.phoneNumber?.toString() || "",
+        age: data.age?.toString() || "",
+        gender: data.gender || "",
+        castecategory: data.castecategory || "",
+        occupation: data.occupation || "",
+        income: data.income?.toString() || "",
+        state: data.state || "",
+        city: data.city || "",
+        zipCode: data.zipCode?.toString() || "",
+        maritalStatus: data.maritalStatus || "",
+        education: data.education || "",
+        preferredLanguage: data.preferredLanguage || "",
+      });
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Error fetching profile. Please try again.");
+    } finally {
+      setLoading(false); // ✅ important: stop loading
+    }
+  };
+
+  fetchProfile();
+}, []); // removed toast from dependencies
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
