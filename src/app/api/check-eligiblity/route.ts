@@ -35,17 +35,17 @@ function isStateMatch(userState: string | undefined, schemeStates: string[] | st
   return false;
 }
 
-// Helper to run Python eligibility script
+// Helper to run Python eligibility script (Vercel-safe)
 async function runPython(user: any, schemes: any[]) {
   return new Promise<any[]>((resolve, reject) => {
     try {
-      const tempDir = path.join(process.cwd(), "tmp");
-      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
+      // Use Vercel-compatible temp folder
+      const tempDir = "/tmp";
 
       const userFile = path.join(tempDir, `user_${Date.now()}.json`);
       const schemesFile = path.join(tempDir, `schemes_${Date.now()}.json`);
 
-      // Pre-filter schemes based on state match like notifications
+      // Pre-filter schemes based on state match
       const filteredSchemes = schemes.filter(scheme =>
         isStateMatch(user.state, scheme.state, scheme.ministry)
       );
@@ -71,8 +71,13 @@ async function runPython(user: any, schemes: any[]) {
       });
 
       py.on("close", (code) => {
-        fs.unlinkSync(userFile);
-        fs.unlinkSync(schemesFile);
+        // Clean up temp files
+        try {
+          fs.unlinkSync(userFile);
+          fs.unlinkSync(schemesFile);
+        } catch (e) {
+          console.warn("Failed to delete temp files:", e);
+        }
 
         if (code === 0) {
           try {
@@ -107,7 +112,7 @@ export async function POST(req: NextRequest) {
 
     const schemes = await prisma.scheme.findMany();
 
-    // Run Python with pre-filtered schemes based on state match
+    // Run Python with pre-filtered schemes
     const eligibleSchemes = await runPython(user, schemes);
 
     // Only send email if new eligible schemes exist
