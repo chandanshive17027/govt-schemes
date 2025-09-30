@@ -1,3 +1,4 @@
+// src/app/api/categorized/[category]/route.ts
 import { prisma } from "@/utils/actions/database/prisma";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,9 +12,12 @@ const categories: Record<string, string[]> = {
   employment: ["employment", "job", "skill", "training"],
 };
 
-// Correct GET handler signature
-export async function GET(req: NextRequest, context: { params: { category: string } }) {
-  const { category } = context.params; // <-- access params here
+// ✅ Correct GET handler signature
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { category: string } }
+) {
+  const { category } = await params;
 
   if (!categories[category]) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });
