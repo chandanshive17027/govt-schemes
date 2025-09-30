@@ -102,10 +102,11 @@ export async function POST(
 }
 
 export async function DELETE(
-  request: Request,          // first param is request
-  { params }: { params: { id: string } } // second param is context with params
-) {
-  const { id } = await params;
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> } // Correctly type context.params as a Promise
+): Promise<NextResponse> {
+  const params = await context.params;
+  const { id } = params;
 
   if (!id) {
     return NextResponse.json({ message: "Invalid scheme id" }, { status: 400 });
@@ -127,6 +128,7 @@ export async function DELETE(
       } else {
         toast.error("❌ An unexpected error occurred.");
       }
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
 
