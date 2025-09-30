@@ -41,6 +41,8 @@ model User {
   userSchemes   UserScheme[]
   eligibleSchemes String[] @default([]) // Array of Scheme IDs the user is eligible for
 
+  updatedData Boolean @default(false) // whether user has updated profile data
+  sentMail Boolean @default(false) // whether welcome email sent
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

@@ -1,136 +1,83 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Bookmark } from "lucide-react";
-import { toast } from "sonner";
+import React, { useEffect, useState } from "react";
 
-interface Scheme {
-  id: string;
-  name: string;
-  ministry?: string;
-  state?: string;
-  link?: string;
-  details?: string;
-}
-
-const EligibilityChecker = ({ userId }: { userId: string }) => {
-  const [schemes, setSchemes] = useState<Scheme[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
-  const [bookmarks, setBookmarks] = useState<string[]>([]);
-  const [prevSchemeIds, setPrevSchemeIds] = useState<string[]>([]); // track previous schemes
-
-  const fetchEligibleSchemes = useCallback(async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/check-eligiblity", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        const newSchemes: Scheme[] = data.eligibleSchemes || [];
-        const newSchemeIds = newSchemes.map((s) => s.id);
-        const hasNewScheme = newSchemeIds.some(
-          (id) => !prevSchemeIds.includes(id)
-        );
-
-        setSchemes(newSchemes);
-        setPrevSchemeIds(newSchemeIds);
-
-        setEmailSent(hasNewScheme && newSchemes.length > 0);
-      } else {
-        console.error(data.error || "Failed to fetch eligible schemes");
-      }
-    } catch (err: unknown) {
-      // Safely check if `err` is an instance of `Error`
-      if (err instanceof Error) {
-        toast.error(err.message);
-      } else {
-        toast.error("❌ An unexpected error occurred.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [userId, prevSchemeIds]); // 👈 include deps
-
-  const handleBookmark = (schemeId: string) => {
-    if (!bookmarks.includes(schemeId)) {
-      setBookmarks([...bookmarks, schemeId]);
-      toast.success("Scheme bookmarked!");
-    }
-  };
+export default function EligibilityChecker() {
+  const [schemes, setSchemes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEligibleSchemes();
-  }, [fetchEligibleSchemes]);
+    const fetchSchemes = async () => {
+      try {
+        const res = await fetch("/api/check-eligiblity");
+        const data = await res.json();
+        if (res.ok) setSchemes(data.eligibleSchemes || []);
+      } catch (err) {
+        console.error("Error fetching eligible schemes:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSchemes();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-40">
+        <p className="text-gray-500 animate-pulse">Checking your eligibility...</p>
+      </div>
+    );
+  }
+
+  const truncateText = (text: string, maxLength: number) => {
+    if (!text) return "No further details available.";
+    return text.length > maxLength ? text.slice(0, maxLength) + "..." : text;
+  };
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
-      <h2 className="text-2xl font-bold mb-4">Top Recommended Schemes</h2>
+    <div className="max-w-5xl mx-auto px-4 py-8">
+      <h2 className="text-2xl font-bold mb-6 text-center text-blue-900">
+        🎯 Your Eligible Schemes
+      </h2>
 
-      {emailSent && (
-        <p className="text-green-600 mb-4">
-          ✅ New recommendations have been sent to your email.
-        </p>
-      )}
-
-      {loading ? (
-        <p>Loading recommendations...</p>
-      ) : schemes.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {schemes.map((scheme) => (
-            <Card
-              key={scheme.id}
-              className="border hover:shadow-lg transition rounded-2xl"
+      {schemes.length > 0 ? (
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {schemes.map((s) => (
+            <div
+              key={s.id}
+              className="bg-white rounded-2xl shadow-md border border-gray-100 hover:shadow-lg transition p-5 flex flex-col"
             >
-              <CardHeader className="flex justify-between items-center">
-                <CardTitle className="text-lg font-semibold">
-                  {scheme.name}
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleBookmark(scheme.id)}
-                  title="Bookmark Scheme"
+              {/* Scheme Name */}
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                {s.name}
+              </h3>
+
+              {/* State or Ministry */}
+              <p className="text-sm text-blue-900 font-medium mb-3">
+                {s.state ? `🌍 State: ${s.state}` : `🏛️ Ministry: ${s.ministry || "N/A"}`}
+              </p>
+
+              {/* Truncated Details */}
+              <p className="text-sm text-gray-600 flex-1">
+                {truncateText(s.details, 100)}
+              </p>
+
+              {/* Action Button */}
+              <div className="mt-4">
+                <button className="w-full bg-blue-900 hover:bg-blue-700 text-white text-sm py-2 rounded-lg transition"
+                  onClick={() => window.open(`/schemes/${s.id}`, "_blank")}
                 >
-                  <Bookmark className="h-5 w-5" />
-                </Button>
-              </CardHeader>
-              <CardContent className="text-sm text-gray-600">
-                {scheme.details && <p>{scheme.details}</p>}
-                <p>
-                  <strong>Ministry:</strong> {scheme.ministry || "N/A"}
-                </p>
-                <p>
-                  <strong>State:</strong> {scheme.state || "All States"}
-                </p>
-                {scheme.link && (
-                  <p>
-                    <a
-                      href={`/schemes/${scheme.id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 underline"
-                    >
-                      View Details
-                    </a>
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+                  View Details
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <p>No schemes found for your profile.</p>
+        <p className="text-center text-gray-500 text-lg">
+          ❌ No eligible schemes found at the moment.
+        </p>
       )}
     </div>
   );
-};
-
-export default EligibilityChecker;
+}
