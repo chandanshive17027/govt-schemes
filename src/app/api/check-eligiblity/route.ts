@@ -5,6 +5,25 @@ import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
 import { sendEmail } from "@/utils/actions/notifications/notifications";
+import { toast } from "sonner";
+
+interface User {
+  id: string;
+  name?: string;
+  email?: string;
+  state?: string;
+  ministry?: string;
+
+}
+
+interface Scheme {
+  id: string;
+  name: string;
+  state?: string[] | string;
+  ministry?: string;
+  details?: string;
+  eligible: any[];
+}
 
 const prisma = new PrismaClient();
 
@@ -36,7 +55,7 @@ function isStateMatch(userState: string | undefined, schemeStates: string[] | st
 }
 
 // Helper to run Python eligibility script
-async function runPython(user: any, schemes: any[]) {
+async function runPython(user: User, schemes: Scheme[]) {
   return new Promise<any[]>((resolve, reject) => {
     try {
       const tempDir = path.join(process.cwd(), "tmp");
@@ -107,8 +126,25 @@ export async function POST(req: NextRequest) {
 
     const schemes = await prisma.scheme.findMany();
 
+    // Map Prisma user to User interface (convert nulls to undefined)
+    const userForEligibility: User = {
+      id: user.id,
+      name: user.name ?? undefined,
+      email: user.email ?? undefined,
+      state: user.state ?? undefined,
+    };
+
+    // Map schemes to match Scheme interface (convert nulls to undefined)
+    const schemesForEligibility: Scheme[] = schemes.map((scheme) => ({
+      ...scheme,
+      state: scheme.state ?? undefined,
+      ministry: scheme.ministry ?? undefined,
+      details: scheme.details ?? undefined,
+      eligible: scheme.eligible ?? [],
+    }));
+
     // Run Python with pre-filtered schemes based on state match
-    const eligibleSchemes = await runPython(user, schemes);
+    const eligibleSchemes = await runPython(userForEligibility, schemesForEligibility);
 
     // Only send email if new eligible schemes exist
     if (eligibleSchemes.length > 0 && user.email) {
@@ -134,11 +170,12 @@ export async function POST(req: NextRequest) {
       message: "Eligibility check complete. Recommendations have also been sent to email.",
       eligibleSchemes,
     });
-  } catch (err: any) {
-    console.error("Eligibility API Error:", err);
-    return NextResponse.json(
-      { error: "Eligibility check failed", details: err.toString() },
-      { status: 500 }
-    );
+  } catch (err: unknown) {
+    // Safely check if `err` is an instance of `Error`
+    if (err instanceof Error) {
+      toast.error(err.message);
+    } else {
+      toast.error("❌ An unexpected error occurred.");
+    }
   }
 }

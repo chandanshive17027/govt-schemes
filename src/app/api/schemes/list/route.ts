@@ -1,5 +1,6 @@
 import { prisma } from "@/utils/actions/database/prisma";
 import { NextResponse } from "next/server";
+import { toast } from "sonner";
 
 export async function GET(req: Request) {
   try {
@@ -52,8 +53,12 @@ export async function GET(req: Request) {
     });
 
     return NextResponse.json({ schemes, total });
-  } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: "Failed to fetch schemes" }, { status: 500 });
-  }
+  } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
+    }
 }

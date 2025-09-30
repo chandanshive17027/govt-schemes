@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { notifyUsersForNewScheme } from "@/utils/actions/notifications/sendSchemeEmail";
+import { toast } from "sonner";
 
 
 const prisma = new PrismaClient();
@@ -37,16 +38,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: "Scheme added successfully", scheme: newScheme });
   }  catch (err: unknown) {
-    console.error("❌ Error deleting scheme:", err);
-
-    if (
-      err instanceof Error &&
-      typeof (err as any).code === "string" &&
-      (err as any).code === "P2025"
-    ) {
-      return NextResponse.json({ message: "Scheme not found" }, { status: 404 });
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
     }
-
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
-  }
 }

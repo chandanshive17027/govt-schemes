@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Pencil, Trash2 } from "lucide-react";
@@ -48,11 +48,11 @@ const AllSchemesPage = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Scheme>>({});
 
-  const fetchSchemes = async () => {
+   const fetchSchemes = useCallback(async () => {
     const params = new URLSearchParams({
       search,
       page: page.toString(),
-      limit: limit.toString(),
+      limit: "10", // You can adjust this limit as per your need
       state: stateFilter,
       ministry: ministryFilter,
       gender: genderFilter,
@@ -68,12 +68,12 @@ const AllSchemesPage = () => {
     } catch (err) {
       console.error(err);
     }
-  };
+  }, [search, page, stateFilter, ministryFilter, genderFilter, occupationFilter, casteFilter]);
 
-  // Fetch schemes whenever page changes
+  // Fetch schemes whenever page changes or filters change
   useEffect(() => {
     fetchSchemes();
-  }, [page]);
+  }, [fetchSchemes]);
 
   const totalPages = Math.ceil(total / limit);
 

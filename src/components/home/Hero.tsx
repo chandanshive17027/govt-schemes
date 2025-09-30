@@ -1,10 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 export default function Hero() {
-  const [query] = useState("");
 
   // const handleSearch = (e: React.FormEvent) => {
   //   e.preventDefault();

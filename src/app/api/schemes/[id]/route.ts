@@ -2,6 +2,7 @@ import { auth } from "@/utils/actions/auth/auth";
 import { prisma } from "@/utils/actions/database/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
+import { toast } from "sonner";
 
 export async function GET( req: NextRequest, { params }: { params: { id: string } }) {
   const {id} = await params;
@@ -67,10 +68,14 @@ export async function POST({ params }: { params: { id: string } }) {
         try {
           const result = JSON.parse(output.trim());
           resolve(result);
-        } catch (err) {
-          console.error("⚠️ Failed to parse Python output:", output);
-          resolve({ eligible: false, reasons: ["Failed to parse eligibility result"] });
-        }
+        } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
+    }
       });
     });
 
@@ -108,17 +113,12 @@ export async function DELETE(
       scheme: deletedScheme,
     });
   } catch (err: unknown) {
-    console.error("❌ Error deleting scheme:", err);
-
-    if (
-      err instanceof Error &&
-      typeof (err as any).code === "string" &&
-      (err as any).code === "P2025"
-    ) {
-      return NextResponse.json({ message: "Scheme not found" }, { status: 404 });
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
     }
-
-    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
-  }
 }
 

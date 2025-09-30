@@ -50,7 +50,7 @@ export async function POST(req: NextRequest, { params }: { params: { schemeId: s
     const schemeData = JSON.stringify([scheme]);
 
     const result: string = await new Promise((resolve, reject) => {
-      execFile("python3", [pythonScriptPath, userData, schemeData], (error, stdout, stderr) => {
+      execFile("python3", [pythonScriptPath, userData, schemeData], (error, stdout) => {
         if (error) return reject(error);
         resolve(stdout);
       });

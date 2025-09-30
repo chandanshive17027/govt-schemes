@@ -4,6 +4,7 @@ import { Scheme } from "@/utils/types/types";
 import { useEffect, useState } from "react";
 import { IoBookmark } from "react-icons/io5";
 import { IoBookmarkOutline } from "react-icons/io5";
+import { toast } from "sonner";
 
 export default function SchemesPage() {
   const [schemes, setSchemes] = useState<Scheme[]>([]);
@@ -23,8 +24,13 @@ export default function SchemesPage() {
         setSchemes(data);
         setFilteredSchemes(data);
       }
-    } catch (error) {
-      console.error("Error fetching schemes:", error);
+    } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
     }
   };
 

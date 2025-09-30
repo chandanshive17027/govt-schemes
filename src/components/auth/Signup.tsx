@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { redirect } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
@@ -45,8 +46,13 @@ export default function RegisterPage() {
         setSuccess(data.message);
         setForm({ name: "", email: "", password: "" });
       }
-    } catch (error) {
-      setError("Something went wrong. Please try again.");
+    } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
     }
   };
 

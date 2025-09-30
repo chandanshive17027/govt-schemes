@@ -2,8 +2,12 @@ import { auth } from "@/utils/actions/auth/auth";
 import { prisma } from "@/utils/actions/database/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
+import { toast } from "sonner";
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     // 1️⃣ Check if user is logged in
     const session = await auth();
@@ -30,44 +34,62 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     // 4️⃣ Run Python script
-    const pythonResult: { eligible: boolean; reasons: string[] } = await new Promise((resolve) => {
-      const py = spawn("python3", [
-        "src/scripts/user_eligibility.py",
-        JSON.stringify(user),
-        JSON.stringify(scheme.eligible)
-      ]);
+    const pythonResult: { eligible: boolean; reasons: string[] } =
+      await new Promise((resolve) => {
+        const py = spawn("python3", [
+          "src/scripts/user_eligibility.py",
+          JSON.stringify(user),
+          JSON.stringify(scheme.eligible),
+        ]);
 
-      let output = "";
-      let errorOutput = "";
+        let output = "";
+        let errorOutput = "";
 
-      py.stdout.on("data", (data) => { output += data.toString(); });
-      py.stderr.on("data", (data) => { errorOutput += data.toString(); });
+        py.stdout.on("data", (data) => {
+          output += data.toString();
+        });
+        py.stderr.on("data", (data) => {
+          errorOutput += data.toString();
+        });
 
-      py.on("close", (code) => {
-        if (code !== 0) {
-          console.error("❌ Python script error:", errorOutput);
-          return resolve({ eligible: false, reasons: ["Python script failed"] });
-        }
-        try {
-          const result = JSON.parse(output.trim());
-          resolve(result);
-        } catch (err) {
-          console.error("⚠️ Failed to parse Python output:", output);
-          resolve({ eligible: false, reasons: ["Failed to parse eligibility result"] });
-        }
+        py.on("close", (code) => {
+          if (code !== 0) {
+            console.error("❌ Python script error:", errorOutput);
+            return resolve({
+              eligible: false,
+              reasons: ["Python script failed"],
+            });
+          }
+          try {
+            const result = JSON.parse(output.trim());
+            resolve(result);
+          } catch (err: unknown) {
+            // Safely check if `err` is an instance of `Error`
+            if (err instanceof Error) {
+              toast.error(err.message);
+            } else {
+              toast.error("❌ An unexpected error occurred.");
+            }
+          }
+        });
       });
-    });
 
     // 5️⃣ Optional: check state constraints
     if (scheme.state && user.state && !scheme.state.includes(user.state)) {
       pythonResult.eligible = false;
-      const stateList = Array.isArray(scheme.state) ? scheme.state.join(", ") : scheme.state;
+      const stateList = Array.isArray(scheme.state)
+        ? scheme.state.join(", ")
+        : scheme.state;
       pythonResult.reasons.push(`Applicable only for state(s): ${stateList}`);
     }
 
     return NextResponse.json(pythonResult);
-  } catch (error) {
-    console.error("❌ Error in eligibility check:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-  }
+  } catch (err: unknown) {
+      // Safely check if `err` is an instance of `Error`
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else {
+        toast.error("❌ An unexpected error occurred.");
+      }
+    }
 }
