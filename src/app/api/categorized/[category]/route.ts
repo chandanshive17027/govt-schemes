@@ -14,10 +14,10 @@ const categories: Record<string, string[]> = {
 
 export async function GET(
   req: NextRequest,
-  context: { params: { category: string } }
+  context: { params: Promise<{ category: string }> }
 ): Promise<NextResponse> {
-  // Await the params property to correctly destructure it.
-  const { category } = context.params;
+  // Await the params property to correctly destructure it
+  const { category } = await context.params;
 
   if (!categories[category]) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });
