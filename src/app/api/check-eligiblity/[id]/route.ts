@@ -3,8 +3,12 @@ import { prisma } from "@/utils/actions/database/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { spawn } from "child_process";
 
-export async function POST(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params; // ✅ get scheme ID from URL
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> } // Correctly type context.params as a Promise
+): Promise<NextResponse> {
+  const params = await context.params; // get scheme ID from URL
+  const { id } = params;
 
   try {
     // 1️⃣ Check if user is logged in
