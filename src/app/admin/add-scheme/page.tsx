@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface SchemeForm {
   name: string;
@@ -75,9 +76,9 @@ export default function AddSchemePage() {
       } else {
         setMessage(`❌ Error: ${data.message}`);
       }
-    } catch (error) {
-      setMessage("❌ An unexpected error occurred.");
-    } finally {
+    } catch (err: any) {
+        toast.error(err.message);
+      }  finally {
       setLoading(false);
     }
   };
