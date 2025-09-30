@@ -107,10 +107,14 @@ export async function DELETE(
       message: "Scheme deleted successfully",
       scheme: deletedScheme,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("❌ Error deleting scheme:", err);
 
-    if (err.code === "P2025") {
+    if (
+      err instanceof Error &&
+      typeof (err as any).code === "string" &&
+      (err as any).code === "P2025"
+    ) {
       return NextResponse.json({ message: "Scheme not found" }, { status: 404 });
     }
 

@@ -36,11 +36,17 @@ export async function POST(req: NextRequest) {
     await notifyUsersForNewScheme(newScheme.id);
 
     return NextResponse.json({ message: "Scheme added successfully", scheme: newScheme });
-  } catch (err: any) {
-    console.error("Error adding scheme:", err);
-    if (err.code === "P2002" && err.meta?.target?.includes("link")) {
-      return NextResponse.json({ message: "Scheme with this link already exists" }, { status: 400 });
+  }  catch (err: unknown) {
+    console.error("❌ Error deleting scheme:", err);
+
+    if (
+      err instanceof Error &&
+      typeof (err as any).code === "string" &&
+      (err as any).code === "P2025"
+    ) {
+      return NextResponse.json({ message: "Scheme not found" }, { status: 404 });
     }
+
     return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

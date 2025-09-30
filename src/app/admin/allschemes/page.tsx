@@ -22,6 +22,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
 interface Scheme {
   id: string;
@@ -124,8 +125,13 @@ const AllSchemesPage = () => {
       throw new Error(err.message || "Failed to delete");
     }
     setSchemes((prev) => prev.filter((s) => s.id !== id));
-  } catch (err: any) {
-    console.error("Error deleting scheme:", err.message);
+  } catch (err: unknown) {
+    // Safely check if `err` is an instance of `Error`
+    if (err instanceof Error) {
+      toast.error(err.message);
+    } else {
+      toast.error("❌ An unexpected error occurred.");
+    }
   }
 };
 
