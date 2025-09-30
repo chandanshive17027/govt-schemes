@@ -29,12 +29,12 @@ export async function DELETE(request: NextRequest,
     });
 
     if (deletedBookmark.count === 0) {
-      return new Response(JSON.stringify({ error: "Bookmark not found" }), { status: 404 });
+      return new NextResponse(JSON.stringify({ error: "Bookmark not found" }), { status: 404 });
     }
 
-    return new Response(JSON.stringify({ message: "Bookmark deleted" }), { status: 200 });
+    return new NextResponse(JSON.stringify({ message: "Bookmark deleted" }), { status: 200 });
   } catch (error) {
     console.error("Error deleting bookmark:", error);
-    return new Response(JSON.stringify({ error: "Failed to delete bookmark" }), { status: 500 });
+    return new NextResponse(JSON.stringify({ error: "Failed to delete bookmark" }), { status: 500 });
   }
 }
