@@ -19,8 +19,10 @@ export async function GET( req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
-
-export async function POST({ params }: { params: { id: string } }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> } // Correctly type context.params as a Promise
+): Promise<NextResponse> {
   try {
     // 1️⃣ Check if user is logged in
     const session = await auth();
@@ -36,9 +38,12 @@ export async function POST({ params }: { params: { id: string } }) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
+    const params = await context.params; // get scheme ID from URL
+    const { id } = params;
+
     // 3️⃣ Fetch scheme by ID
     const scheme = await prisma.scheme.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: { id: true, name: true, tags: true, eligible: true, state: true },
     });
 
