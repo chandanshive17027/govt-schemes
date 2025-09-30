@@ -15,9 +15,9 @@ const categories: Record<string, string[]> = {
 // ✅ Correct GET handler signature
 export async function GET(
   req: NextRequest,
-  { params }: { params: { category: string } }
-) {
-  const { category } = await params;
+  context: {params: {category: string}}
+) : Promise<NextResponse> {
+  const { category } = await context.params;
 
   if (!categories[category]) {
     return NextResponse.json({ error: "Invalid category" }, { status: 400 });
