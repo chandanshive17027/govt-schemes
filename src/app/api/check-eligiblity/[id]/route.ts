@@ -15,10 +15,10 @@ export async function POST(
       return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    const { id } = await params;
 
     // 2️⃣ Fetch user from DB
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ where: { id: id } });
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
