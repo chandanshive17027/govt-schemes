@@ -14,7 +14,7 @@ const UserDashboard = async ({username, name, userId}: {username: string | null,
     <div>
         <Navbar username={username} />
         <WelcomeSection userName={name || "User"} />
-        <EligibilityChecker userId={userId ?? ""} />
+        <EligibilityChecker />
         <BookmarksPage/>
         <SignOut/>
         <Footer/>
