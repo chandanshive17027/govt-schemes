@@ -6,7 +6,10 @@ import { auth } from "@/utils/actions/auth/auth";
 import { prisma } from "@/utils/actions/database/prisma";
 
 
-export async function POST(req: NextRequest, { params }: { params: { schemeId: string } }) {
+export async function POST(
+  request: NextRequest,
+  context: { params: Promise<{ schemeId: string }> } // Correctly type context.params as a Promise
+): Promise<NextResponse> {
   // 1️⃣ Check session
   const session = await auth();
   if (!session?.user?.email) {
@@ -14,7 +17,8 @@ export async function POST(req: NextRequest, { params }: { params: { schemeId: s
   }
 
   //await params
-  const schemeId = await params.schemeId; 
+  const params = await context.params;
+  const {schemeId} = params;
 
   try {
     const user = await prisma.user.findUnique({
