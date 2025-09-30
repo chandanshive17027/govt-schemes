@@ -1,7 +1,7 @@
 // src/app/api/schemes-scrap/route.ts
+import { notifyUsersForNewScheme } from "@/utils/actions/notifications/sendSchemeEmail";
 import { PrismaClient } from "@prisma/client";
 import { exec } from "child_process";
-import { notifyUsersForNewScheme } from "@/utils/actions/notifications/sendSchemeEmail";
 
 const prisma = new PrismaClient();
 
